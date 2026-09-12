@@ -1,0 +1,239 @@
+/* 조호바루 골프여행 — stylesheet
+   Visual tokens below are provisional defaults pending DESIGN.md (see plan.md's Open
+   Dependency). Structure/behavior classes (.scene, .scene__*, #stage) are the binding
+   contract with script.js — see contracts/scene-markup-contract.md.
+
+   Layout model: the DEFAULT (no class needed) layout is the normal-document-flow
+   presentation — this is what renders with JavaScript disabled, before script.js has
+   run, on mobile, and under prefers-reduced-motion. script.js opts the page INTO the
+   pinned full-viewport scroll narrative by adding `stage--pinned` to #stage only once
+   it has confirmed a desktop viewport and no reduced-motion preference; that pinned
+   layout is the override block near the bottom of this file. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --color-bg: #0b1210;
+  --color-ink: #f4f1ea;
+  --color-ink-dim: #cfd3ce;
+  --color-accent: #c9a24b;
+  --color-scrim-start: rgba(6, 10, 9, 0.05);
+  --color-scrim-end: rgba(6, 10, 9, 0.82);
+
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR",
+    "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+
+  --body-size: 18px;
+  --body-line-height: 1.75;
+
+  --scene-pad-inline: clamp(1.25rem, 5vw, 5rem);
+}
+
+html {
+  background: var(--color-bg);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+p {
+  margin: 0;
+}
+
+/* ---- Focus baseline (Principle V / FR-011) ---- */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   DEFAULT layout: normal document flow (no-JS baseline, mobile,
+   and prefers-reduced-motion all use exactly this). Image, then
+   title/subtitle, then body, then keywords, in source order.
+   ============================================================ */
+
+#stage {
+  position: relative;
+  width: 100%;
+}
+
+.scene {
+  position: relative;
+  width: 100%;
+  padding-bottom: clamp(2.5rem, 6vh, 4rem);
+  border-bottom: 1px solid rgba(244, 241, 234, 0.08);
+}
+
+.scene:last-child {
+  border-bottom: none;
+}
+
+.scene__bg {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+}
+
+.scene__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  will-change: auto; /* toggled to transform only while a scene is actively animating */
+}
+
+.scene__scrim {
+  display: none; /* only meaningful once text overlays the photo in pinned mode */
+}
+
+.scene__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: clamp(1.5rem, 4vh, 2.5rem) var(--scene-pad-inline) 0;
+  max-width: 46rem;
+}
+
+/* ---- Typography hierarchy (applies in both layout modes) ---- */
+
+.scene__eyebrow {
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin: 0;
+}
+
+.scene__title {
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  line-height: 1.15;
+  margin: 0;
+  font-weight: 700;
+}
+
+.scene__name {
+  font-size: clamp(1.9rem, 4.2vw, 3rem);
+  line-height: 1.2;
+  margin: 0;
+  font-weight: 700;
+}
+
+.scene__subtitle {
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  color: var(--color-ink-dim);
+  font-weight: 500;
+  margin: 0;
+}
+
+.scene__lead,
+.scene__body {
+  font-size: var(--body-size);
+  line-height: var(--body-line-height);
+  color: var(--color-ink);
+  max-width: 42ch;
+}
+
+.scene__keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.scene__keywords li {
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+  color: var(--color-ink);
+  border: 1px solid rgba(244, 241, 234, 0.35);
+  border-radius: 999px;
+  padding: 0.3rem 0.85rem;
+}
+
+/* ============================================================
+   PINNED layout override — desktop only, applied by script.js
+   once it confirms !isMobile && !prefersReducedMotion. Switches
+   every .scene into a full-viewport absolutely-stacked layer so
+   the GSAP master timeline can cross-fade/scale/parallax between
+   them. Everything above still defines the shared visual tokens
+   (colors, typography); this block only changes positioning.
+   ============================================================ */
+
+#stage.stage--pinned {
+  overflow: hidden;
+}
+
+#stage.stage--pinned .scene {
+  position: absolute;
+  inset: 0;
+  height: 100vh;
+  overflow: hidden;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+#stage.stage--pinned .scene__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+#stage.stage--pinned .scene__scrim {
+  display: block;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    var(--color-scrim-end) 0%,
+    var(--color-scrim-start) 55%
+  );
+  pointer-events: none;
+}
+
+#stage.stage--pinned .scene__content {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  height: 100%;
+  justify-content: flex-end;
+  padding: clamp(2rem, 6vh, 4rem) var(--scene-pad-inline) clamp(3rem, 10vh, 6rem);
+}
+
+/* Toggled by script.js only for the scene(s) currently inside their active
+   animation window, so will-change stays off everything else (research.md §11). */
+#stage.stage--pinned .scene.is-active .scene__image,
+#stage.stage--pinned .scene.is-active .scene__bg,
+#stage.stage--pinned .scene.is-active .scene__content {
+  will-change: transform;
+}
